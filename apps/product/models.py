@@ -45,6 +45,13 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+    
+    @property
+    def final_price(self):
+        """Calculate the final price after discount."""
+        if self.discount_price:
+            return self.discount_price
+        return self.price
 
 
 class ProductImage(models.Model):

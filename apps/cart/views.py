@@ -30,7 +30,6 @@ class CartView(BaseCartView, generics.RetrieveAPIView):
     @swagger_auto_schema(
         operation_summary="Get user's cart",
         operation_description="Returns the authenticated user's cart. Creates one if it doesn't exist.",
-        responses={200: CartSerializer()},
     )
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
@@ -43,7 +42,7 @@ class CartView(BaseCartView, generics.RetrieveAPIView):
         ).get(pk=cart.pk)
 
 
-class AddToCartView(BaseCartView):
+class AddToCartView(BaseCartView, generics.CreateAPIView):
     serializer_class = AddToCartSerializer
 
     @swagger_auto_schema(
@@ -55,13 +54,16 @@ class AddToCartView(BaseCartView):
                 type=openapi.TYPE_OBJECT,
                 properties={
                     "detail": openapi.Schema(type=openapi.TYPE_STRING),
-                    "cart": CartSerializer()
+                    "cart": openapi.Schema(type=openapi.TYPE_OBJECT),
                 },
             )),
             400: "Invalid input"
         },
     )
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -86,7 +88,7 @@ class AddToCartView(BaseCartView):
                 return Response({
                     "detail": "Product added to cart successfully",
                     "cart": cart_serializer.data
-                })
+                }, status=status.HTTP_200_OK)
 
         except Exception as e:
             raise ValidationError(str(e))
@@ -100,11 +102,27 @@ class UpdateCartItemView(BaseCartView, generics.UpdateAPIView):
         operation_description="Updates the quantity of a specific item in the cart.",
         request_body=UpdateCartItemSerializer,
         responses={
-            200: openapi.Response("Updated successfully", CartSerializer()),
+            200: openapi.Response("Updated successfully", CartSerializer),
             400: "Invalid input",
             404: "Not found"
         },
     )
+    def patch(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_summary="Update cart item quantity",
+        operation_description="Updates the quantity of a specific item in the cart.",
+        request_body=UpdateCartItemSerializer,
+        responses={
+            200: openapi.Response("Updated successfully", CartSerializer),
+            400: "Invalid input", 
+            404: "Not found"
+        },
+    )
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data)
@@ -117,7 +135,7 @@ class UpdateCartItemView(BaseCartView, generics.UpdateAPIView):
                 
                 cart = self.get_cart()
                 cart_serializer = CartSerializer(cart)
-                return Response(cart_serializer.data)
+                return Response(cart_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             raise ValidationError(str(e))
 
@@ -139,6 +157,9 @@ class RemoveCartItemView(BaseCartView, generics.DestroyAPIView):
             404: "Not found"
         },
     )
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
     def destroy(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
