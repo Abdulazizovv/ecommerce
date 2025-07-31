@@ -4,3 +4,6 @@ djangorestframework-simplejwt
 gunicorn
 psycopg2-binary
 drf-yasg
+django-filter
+django-taggit
+pillow
