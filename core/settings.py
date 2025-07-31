@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "apps.users",
     "apps.product",
     "apps.category",
+    "apps.cart",
     # third party apps
     "drf_yasg",
     "rest_framework",
