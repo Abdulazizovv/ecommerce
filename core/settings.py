@@ -46,6 +46,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # third party apps
+    'drf_yasg',
+    'rest_framework',
+
 ]
 
 MIDDLEWARE = [
@@ -85,6 +89,20 @@ MESSAGE_TAGS = {
 }
 
 WSGI_APPLICATION = 'core.wsgi.application'
+
+# Swagger
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'JWT': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+            'description': 'JWT token kiriting: Format - Bearer <token>',
+        }
+    },
+    'USE_SESSION_AUTH': False,  # Login/logout tugmalarini yashirish
+    'PERSIST_AUTH': True,  # Auth ma'lumotini saqlab qoladi
+}
 
 
 # Database
