@@ -13,7 +13,7 @@ class CategoryAdmin(admin.ModelAdmin):
     ]
     list_filter = ['created_at', 'updated_at']
     search_fields = ['name', 'slug']
-    readonly_fields = ['slug', 'created_at', 'updated_at', 'products_count_detailed']
+    readonly_fields = ['created_at', 'updated_at', 'products_count_detailed']
     prepopulated_fields = {'slug': ('name',)}
     ordering = ['name']
     
@@ -55,8 +55,8 @@ class CategoryAdmin(admin.ModelAdmin):
         from apps.product.models import Product
         
         total = obj.products.count()
-        active = obj.products.filter(status='active').count()
-        inactive = obj.products.filter(status='inactive').count()
+        active = obj.products.filter(status='available').count()
+        inactive = obj.products.filter(status='draft').count()
         out_of_stock = obj.products.filter(status='out_of_stock').count()
         
         html = f"""

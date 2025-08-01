@@ -17,7 +17,7 @@ class OrderItemInline(admin.TabularInline):
         """Calculate and display item total price"""
         if obj and obj.item_price and obj.quantity:
             total = float(obj.item_price) * obj.quantity
-            return format_html('<strong>${:.2f}</strong>', total)
+            return format_html('<strong>{:.2f} so\'m</strong>', total)
         return '-'
     get_item_total.short_description = 'Jami narx'
 
@@ -30,8 +30,7 @@ class OrderAdmin(admin.ModelAdmin):
         'order_id', 
         'user_link', 
         'status_colored', 
-        'items_count', 
-        'total_amount',
+        'order_price',
         'created_at_formatted',
         'updated_at'
     )
@@ -53,9 +52,7 @@ class OrderAdmin(admin.ModelAdmin):
     readonly_fields = (
         'order_id', 
         'created_at', 
-        'updated_at', 
-        'total_amount',
-        'items_count'
+        'updated_at'
     )
     
     fieldsets = (
@@ -63,15 +60,11 @@ class OrderAdmin(admin.ModelAdmin):
             'fields': ('order_id', 'user', 'status')
         }),
         ('Moliyaviy ma\'lumotlar', {
-            'fields': ('order_price', 'total_amount'),
+            'fields': ('order_price',),
             'classes': ('collapse',)
         }),
         ('Vaqt ma\'lumotlari', {
             'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
-        ('Statistika', {
-            'fields': ('items_count',),
             'classes': ('collapse',)
         })
     )
@@ -90,7 +83,6 @@ class OrderAdmin(admin.ModelAdmin):
             return format_html('<a href="{}">{}</a>', url, obj.user.email)
         return '-'
     user_link.short_description = 'Foydalanuvchi'
-    user_link.admin_order_field = 'user__email'
 
     def status_colored(self, obj):
         """Display status with colors"""
@@ -107,7 +99,6 @@ class OrderAdmin(admin.ModelAdmin):
             obj.get_status_display()
         )
     status_colored.short_description = 'Holat'
-    status_colored.admin_order_field = 'status'
     
     def items_count(self, obj):
         """Count of items in order"""
@@ -117,7 +108,7 @@ class OrderAdmin(admin.ModelAdmin):
     def total_amount(self, obj):
         """Calculate total amount of order"""
         if hasattr(obj, 'order_price') and obj.order_price:
-            return format_html('<strong>${}</strong>', obj.order_price)
+            return format_html('<strong>{:.2f} so\'m</strong>', obj.order_price)
         
         # Fallback to calculating from items
         total = 0
@@ -125,32 +116,31 @@ class OrderAdmin(admin.ModelAdmin):
             if item.item_price and item.quantity:
                 total += item.item_price * item.quantity
         
-        return format_html('<strong>${:.2f}</strong>', total)
+        return format_html('<strong>{:.2f} so\'m</strong>', total)
     total_amount.short_description = 'Jami summa'
     
     def created_at_formatted(self, obj):
         """Format created_at date"""
         return obj.created_at.strftime('%d.%m.%Y %H:%M')
     created_at_formatted.short_description = 'Yaratilgan vaqt'
-    created_at_formatted.admin_order_field = 'created_at'
     
     # Custom actions
     def mark_as_pending(self, request, queryset):
         """Mark selected orders as pending"""
         updated = queryset.update(status=Order.OrderStatus.PENDING)
-        self.message_user(request, f'{updated} ta buyurtma "Jarayonda" holatiga o\'tkazildi.')
+        self.message_user(request, '{} ta buyurtma "Jarayonda" holatiga o\'tkazildi.'.format(updated))
     mark_as_pending.short_description = 'Tanlangan buyurtmalarni "Jarayonda" qilish'
     
     def mark_as_completed(self, request, queryset):
         """Mark selected orders as completed"""
         updated = queryset.update(status=Order.OrderStatus.COMPLETED)
-        self.message_user(request, f'{updated} ta buyurtma "Yakunlangan" holatiga o\'tkazildi.')
+        self.message_user(request, '{} ta buyurtma "Yakunlangan" holatiga o\'tkazildi.'.format(updated))
     mark_as_completed.short_description = 'Tanlangan buyurtmalarni "Yakunlangan" qilish'
     
     def mark_as_cancelled(self, request, queryset):
         """Mark selected orders as cancelled"""
         updated = queryset.update(status=Order.OrderStatus.CANCELLED)
-        self.message_user(request, f'{updated} ta buyurtma "Bekor qilingan" holatiga o\'tkazildi.')
+        self.message_user(request, '{} ta buyurtma "Bekor qilingan" holatiga o\'tkazildi.'.format(updated))
     mark_as_cancelled.short_description = 'Tanlangan buyurtmalarni "Bekor qilingan" qilish'
     
     def get_queryset(self, request):
@@ -166,8 +156,7 @@ class OrderItemAdmin(admin.ModelAdmin):
         'order_link',
         'product_link', 
         'quantity', 
-        'item_price_formatted',
-        'total_price'
+        'item_price'
     )
     
     list_filter = (
@@ -193,7 +182,6 @@ class OrderItemAdmin(admin.ModelAdmin):
         url = reverse('admin:order_order_change', args=[obj.order.pk])
         return format_html('<a href="{}">{}</a>', url, obj.order.order_id)
     order_link.short_description = 'Buyurtma'
-    order_link.admin_order_field = 'order__order_id'
     
     def product_link(self, obj):
         """Create clickable link to product admin"""
@@ -202,21 +190,12 @@ class OrderItemAdmin(admin.ModelAdmin):
             return format_html('<a href="{}">{}</a>', url, obj.product.name)
         return '-'
     product_link.short_description = 'Mahsulot'
-    product_link.admin_order_field = 'product__name'
-    
-    def item_price_formatted(self, obj):
-        """Format item price"""
-        if obj and obj.item_price:
-            return format_html('${:.2f}', float(obj.item_price))
-        return '-'
-    item_price_formatted.short_description = 'Narx'
-    item_price_formatted.admin_order_field = 'item_price'
     
     def total_price(self, obj):
         """Calculate total price for this item"""
         if obj and obj.item_price and obj.quantity:
             total = float(obj.item_price) * obj.quantity
-            return format_html('<strong>${:.2f}</strong>', total)
+            return format_html('<strong>{:.2f} so\'m</strong>', total)
         return '-'
     total_price.short_description = 'Jami narx'
     
