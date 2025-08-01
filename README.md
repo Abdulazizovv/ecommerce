@@ -262,7 +262,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Abdulazizov**
 - GitHub: [@Abdulazizovv](https://github.com/Abdulazizovv)
-- Email: [your-email@example.com](mailto:your-email@example.com)
+- Email: [aqllibola567@gmail.com](mailto:aqllibola567@gmail.com)
 
 ## 🙏 Acknowledgments
 
