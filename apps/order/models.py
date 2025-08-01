@@ -62,6 +62,30 @@ class Order(models.Model):
         verbose_name = "Buyurtma"
         verbose_name_plural = "Buyurtmalar"
         ordering = ["-created_at"]
+        indexes = [
+            # Order ID for quick lookup (most common query)
+            models.Index(fields=['order_id'], name='order_order_id_idx'),
+            
+            # User-based queries
+            models.Index(fields=['user'], name='order_user_idx'),
+            models.Index(fields=['user', 'status'], name='order_user_status_idx'),
+            
+            # Status filtering (admin panel, statistics)
+            models.Index(fields=['status'], name='order_status_idx'),
+            models.Index(fields=['status', 'created_at'], name='order_status_time_idx'),
+            
+            # Time-based queries (reports, analytics)
+            models.Index(fields=['created_at'], name='order_created_idx'),
+            models.Index(fields=['updated_at'], name='order_updated_idx'),
+            
+            # Order price queries for analytics
+            models.Index(fields=['order_price'], name='order_price_idx'),
+            models.Index(fields=['order_price', 'status'], name='order_price_status_idx'),
+            
+            # Combined indexes for complex queries
+            models.Index(fields=['user', 'created_at'], name='order_user_time_idx'),
+            models.Index(fields=['created_at', 'status'], name='order_time_status_idx'),
+        ]
 
     def __str__(self):
         return f"Buyurtma #{self.id} - {self.get_status_display()}"
@@ -97,6 +121,21 @@ class OrderItem(models.Model):
         verbose_name = "Buyurtma elementi"
         verbose_name_plural = "Buyurtma elementlari"
         unique_together = ("order", "product")
+        indexes = [
+            # Order-based queries (most common - loading order items)
+            models.Index(fields=['order'], name='orderitem_order_idx'),
+            
+            # Product-based queries
+            models.Index(fields=['product'], name='orderitem_product_idx'),
+            
+            # Quantity and price for analytics
+            models.Index(fields=['quantity'], name='orderitem_quantity_idx'),
+            models.Index(fields=['item_price'], name='orderitem_price_idx'),
+            
+            # Combined indexes for complex queries
+            models.Index(fields=['order', 'product'], name='orderitem_order_product_idx'),
+            models.Index(fields=['product', 'quantity'], name='orderitem_product_qty_idx'),
+        ]
 
     def __str__(self):
         return f"{self.product.name} - {self.quantity} ta"

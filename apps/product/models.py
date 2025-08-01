@@ -37,6 +37,32 @@ class Product(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+        indexes = [
+            # Most common filters
+            models.Index(fields=['status'], name='product_status_idx'),
+            models.Index(fields=['category'], name='product_category_idx'),
+            models.Index(fields=['creator'], name='product_creator_idx'),
+            
+            # Price range queries
+            models.Index(fields=['price'], name='product_price_idx'),
+            models.Index(fields=['discount_price'], name='product_discount_idx'),
+            
+            # Time-based queries
+            models.Index(fields=['created_at'], name='product_created_idx'),
+            models.Index(fields=['updated_at'], name='product_updated_idx'),
+            
+            # Combined indexes for common filter combinations
+            models.Index(fields=['status', 'category'], name='product_status_cat_idx'),
+            models.Index(fields=['status', 'created_at'], name='product_status_time_idx'),
+            models.Index(fields=['category', 'price'], name='product_cat_price_idx'),
+            models.Index(fields=['status', 'price'], name='product_status_price_idx'),
+            
+            # Admin panel optimizations
+            models.Index(fields=['creator', 'status'], name='product_creator_status_idx'),
+            models.Index(fields=['category', 'status', 'created_at'], name='product_cat_status_time_idx'),
+        ]
+        verbose_name = "Mahsulot"
+        verbose_name_plural = "Mahsulotlar"
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -60,6 +86,13 @@ class ProductImage(models.Model):
     )
     image = models.ImageField(upload_to="products/gallery/")
     alt_text = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['product'], name='productimg_product_idx'),
+        ]
+        verbose_name = "Mahsulot rasmi"
+        verbose_name_plural = "Mahsulot rasmlari"
 
     def __str__(self):
         return f"Image for {self.product.name}"

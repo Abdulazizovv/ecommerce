@@ -33,6 +33,30 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["phone", "first_name", "last_name"]
 
+    class Meta:
+        verbose_name = "Foydalanuvchi"
+        verbose_name_plural = "Foydalanuvchilar"
+        indexes = [
+            # Email for authentication (most common)
+            models.Index(fields=['email'], name='user_email_idx'),
+            
+            # Phone for lookups and verification
+            models.Index(fields=['phone'], name='user_phone_idx'),
+            
+            # Status fields for admin filtering
+            models.Index(fields=['is_active'], name='user_active_idx'),
+            models.Index(fields=['is_staff'], name='user_staff_idx'),
+            
+            # Name searches
+            models.Index(fields=['first_name'], name='user_firstname_idx'),
+            models.Index(fields=['last_name'], name='user_lastname_idx'),
+            models.Index(fields=['first_name', 'last_name'], name='user_fullname_idx'),
+            
+            # Combined for admin panel
+            models.Index(fields=['is_active', 'is_staff'], name='user_status_idx'),
+            models.Index(fields=['email', 'is_active'], name='user_email_active_idx'),
+        ]
+
     def __str__(self):
         return self.email
     
@@ -41,6 +65,24 @@ class VerificationCode(models.Model):
     email = models.EmailField()
     code = models.CharField(max_length=6)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Tasdiqlash kodi"
+        verbose_name_plural = "Tasdiqlash kodlari"
+        indexes = [
+            # Email lookup for verification
+            models.Index(fields=['email'], name='verification_email_idx'),
+            
+            # Code lookup
+            models.Index(fields=['code'], name='verification_code_idx'),
+            
+            # Time-based for cleanup old codes
+            models.Index(fields=['created_at'], name='verification_time_idx'),
+            
+            # Combined for verification process
+            models.Index(fields=['email', 'code'], name='verification_email_code_idx'),
+            models.Index(fields=['email', 'created_at'], name='verification_email_time_idx'),
+        ]
 
     def __str__(self):
         return f"Verification code for {self.email}"
